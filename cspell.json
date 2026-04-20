@@ -1,0 +1,43 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "aiohttp",
+    "aioresponses",
+    "apscheduler",
+    "asyncio",
+    "desktopnotifier",
+    "fastapi",
+    "ghp",
+    "glpat",
+    "hatchling",
+    "isort",
+    "pathlib",
+    "perflint",
+    "pipe_ping",
+    "pipe-ping",
+    "podman",
+    "prek",
+    "pycache",
+    "pycodestyle",
+    "pydantic",
+    "pyflakes",
+    "pymongo",
+    "pytest",
+    "pyupgrade",
+    "ruff",
+    "tryceratops",
+    "typer",
+    "testpaths",
+    "upsert",
+    "uvicorn",
+    "venv"
+  ],
+  "ignorePaths": [
+    ".git",
+    ".gitignore",
+    "*.lock",
+    ".venv",
+    "CLAUDE.md"
+  ]
+}
