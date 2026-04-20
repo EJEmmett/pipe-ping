@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:8
+    image: docker.io/library/mongo:8
     container_name: pipe-ping-mongo
     ports:
       - "27017:27017"
