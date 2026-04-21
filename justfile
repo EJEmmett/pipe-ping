@@ -13,13 +13,13 @@ test:
     uv run pytest
 
 lint:
-    uv run ruff check pipe_ping tests
-    uv run ruff format --check pipe_ping tests
+    uv run ruff check .
+    uv run ruff format --check .
     uv run ty check
 
 format:
-    uv run ruff check --fix pipe_ping tests
-    uv run ruff format pipe_ping tests
+    uv run ruff check --fix .
+    uv run ruff format .
 
 mongo:
     podman-compose up -d
