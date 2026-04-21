@@ -12,7 +12,7 @@ notifications on build status changes.
 ## Tech Stack
 
 | Tool | Purpose |
-|------|---------|
+| ---- | ------- |
 | Python 3.13 | Runtime |
 | uv | Package manager + virtualenv |
 | asyncio + aiohttp | Concurrent async HTTP polling |
@@ -53,20 +53,22 @@ See [`planning/`](planning/) for work-in-progress docs:
 
 ## Environment Variables
 
+All vars are prefixed `PIPE_PING_`. Nested settings use `__` as the delimiter.
+
 ```env
 # CI/CD Provider Tokens
-GITHUB_TOKEN=ghp_...
-GITLAB_TOKEN=glpat-...
+PIPE_PING_PROVIDER__GITHUB_TOKEN=ghp_...
+PIPE_PING_PROVIDER__GITLAB_TOKEN=glpat-...
 
 # MongoDB
-MONGODB_URI=mongodb://localhost:27017
-MONGODB_DB=pipe-ping
+PIPE_PING_DATABASE__MONGODB_URI=mongodb://localhost:27017
+PIPE_PING_DATABASE__MONGODB_DB=pipe-ping
 
 # Polling
-POLL_INTERVAL_SECONDS=60
+PIPE_PING_POLL_INTERVAL_SECONDS=60
 
 # Repos to watch (comma-separated owner/repo)
-WATCH_REPOS=owner/repo1,owner/repo2
+PIPE_PING_WATCH_REPOS=owner/repo1,owner/repo2
 ```
 
 ## Common Commands (via Just)
