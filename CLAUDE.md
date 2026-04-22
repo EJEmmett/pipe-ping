@@ -4,10 +4,12 @@
 
 ## What This Is
 
-A locally-run async Python service that concurrently monitors CI/CD pipelines
-across GitHub Actions and GitLab CI. Stores build history in MongoDB
-via pymongo.AsyncMongoClient. Exposes a FastAPI REST API. Fires cross-platform toast
-notifications on build status changes.
+A locally-run async Python service that concurrently monitors CI/CD pipelines across
+multiple providers (GitHub Actions, GitLab CI, and more). Providers, repositories, and
+notifiers are all plugin-based via `importlib.metadata` entry points. Stores build history
+via a repository plugin (MongoDB by default). Exposes a FastAPI REST API. Fires
+cross-platform toast notifications — and other alerts — when pipeline status changes.
+Status-change detection is the core logic: only transitions are acted on, not every poll.
 
 ## Tech Stack
 
@@ -33,12 +35,16 @@ notifications on build status changes.
 
 > **Note for Claude:** When adding new design decisions, specs, or forward-looking content, create a file in `planning/` and add a pointer here — do not write planning content directly into this file.
 
-See [`planning/`](planning/) for work-in-progress docs:
+See [`planning/`](planning/) for design docs:
 
-- [`planning/build-order.md`](planning/build-order.md) — sequenced implementation plan
-- [`planning/notifiers.md`](planning/notifiers.md) — email + SMS notifier design (deferred)
-- [`planning/spec.md`](planning/spec.md) — project structure, CLI commands, API endpoints, testing approach
-- [`planning/design-patterns.md`](planning/design-patterns.md) — plugin architecture, provider/notifier patterns, status change detection
+- [`planning/architecture.md`](planning/architecture.md) — system overview, data flow, full package layout, toolchain
+- [`planning/build-order.md`](planning/build-order.md) — phased implementation roadmap with checkpoints
+- [`planning/plugin-system.md`](planning/plugin-system.md) — entry point discovery, all three plugin contracts, third-party extension guide
+- [`planning/repository-impl.md`](planning/repository-impl.md) — repository layer ABI and MongoDB concrete implementation
+- [`planning/status-detection.md`](planning/status-detection.md) — transition table, detection algorithm, `StatusChangeEvent` model, test requirements
+- [`planning/providers.md`](planning/providers.md) — `BaseProvider` contract, GitHub and GitLab implementations, deferred providers
+- [`planning/notifiers.md`](planning/notifiers.md) — `BaseNotifier` contract, all four notifier implementations
+- [`planning/deployment.md`](planning/deployment.md) — CLI, API server, and Docker run modes
 
 ## Conventions
 
@@ -46,10 +52,11 @@ See [`planning/`](planning/) for work-in-progress docs:
 - **Pydantic models for all data** — never raw dicts across boundaries
 - **Async everywhere** — no blocking calls, no `time.sleep()`
 - **No bare except clauses** — always catch specific exceptions
-- **Abstract base classes** for providers and notifiers — new ones are one file + one entry point
+- **Abstract base classes** for providers, repositories, and notifiers — new ones are one file + one entry point
+- **The storage abstraction is called a repository** — not a database; "database" refers only to the backend
 - **Status change detection is the core logic** — only notify on transitions, not every poll
 - **Environment variables via .env** — never hardcode secrets or tokens
-- **MongoDB document IDs** — always use `_id` as string (repo + run_id composite)
+- **Repository document IDs** — always use `_id` as string with format `{repo}#{run_id}`
 
 ## Environment Variables
 
