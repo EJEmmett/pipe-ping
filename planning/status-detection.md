@@ -67,7 +67,7 @@ Run once per poll cycle, per watched repo, per provider:
 async def process_builds(
     provider: BaseProvider,
     repo: str,
-    db: AbstractDatabase,
+    db: AbstractRepository,
     notifiers: list[BaseNotifier],
 ) -> None:
     builds = await provider.fetch_builds(repo)

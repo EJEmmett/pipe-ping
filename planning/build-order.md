@@ -19,16 +19,16 @@ Pydantic models for all data boundaries and the pydantic-settings configuration 
 
 ## Phase 2 — Repository Layer
 
-**Files:** `pipe_ping/db/base.py`, `pipe_ping/db/memory.py`, `pipe_ping/models/events.py`
+**Files:** `pipe_ping/repository/base.py`, `pipe_ping/repository/memory.py`, `pipe_ping/models/events.py`
 
-Abstract repository layer (`AbstractDatabase`, `AbstractTransactionContext`,
+Abstract repository layer (`AbstractRepository`, `AbstractTransactionContext`,
 `AbstractTransaction`) and the in-memory concrete implementation. The in-memory repository
 ships with core — no extras required — and serves as the default when no persistent backend
 is installed. All writes are upserts keyed by `{repo}#{run_id}`. Also add
 `StatusChangeEvent` to `pipe_ping/models/events.py` so the scheduler and notifiers share
 one import location.
 
-**Checkpoint:** unit tests prove that `InMemoryDatabase` round-trips a
+**Checkpoint:** unit tests prove that `InMemoryRepository` round-trips a
 `write_one_pipeline_result` / `read_one_pipeline_result` pair and preserves all fields
 including `raw`. Run without any optional extras installed.
 
@@ -36,7 +36,7 @@ including `raw`. Run without any optional extras installed.
 
 ## Phase 2b — MongoDB Repository
 
-**Files:** `pipe_ping/db/mongo.py`
+**Files:** `pipe_ping/repository/mongo.py`
 
 MongoDB concrete implementation of the repository ABCs. Requires the `[mongodb]` extra
 (`pymongo[async]`). Registered as the `mongodb` entry point alongside `memory`.

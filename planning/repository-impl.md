@@ -2,24 +2,24 @@
 
 The storage abstraction is called the **repository layer**. The word "database" refers
 only to a specific backend (MongoDB, SQLite, etc.). Callers always interact with the ABCs
-(`AbstractDatabase`, `AbstractTransaction`) — never with concrete classes directly.
+(`AbstractRepository`, `AbstractTransaction`) — never with concrete classes directly.
 
 ## Two-Layer ABI
 
 ```text
-AbstractDatabase          AbstractTransactionContext     AbstractTransaction
+AbstractRepository          AbstractTransactionContext     AbstractTransaction
   open()            ──→     __aenter__()          ──→     write_one_pipeline_result()
   close()                   __aexit__()                   read_one_pipeline_result()
   transaction()     ──→   (context manager)
 ```
 
-### `AbstractDatabase`
+### `AbstractRepository`
 
 ```python
-class AbstractDatabase(ABC):
+class AbstractRepository(ABC):
     @classmethod
     @abstractmethod
-    def create(cls) -> "AbstractDatabase": ...
+    def create(cls) -> "AbstractRepository": ...
 
     @abstractmethod
     async def open(self) -> None: ...
@@ -92,7 +92,7 @@ overwrites the previous document — idempotent by design.
 
 ## In-Memory Concrete Implementation
 
-`InMemoryDatabase` ships with core — no extras required. It holds all documents in a
+`InMemoryRepository` ships with core — no extras required. It holds all documents in a
 plain dict for the lifetime of the process. Data does not survive restarts. Its primary
 use is as the default backend when no persistent repository is installed, and as the
 test double for scheduler unit tests.
@@ -100,9 +100,9 @@ test double for scheduler unit tests.
 `create()` requires no configuration and returns a new instance immediately.
 
 ```python
-class InMemoryDatabase(AbstractDatabase):
+class InMemoryRepository(AbstractRepository):
     @classmethod
-    def create(cls) -> "InMemoryDatabase":
+    def create(cls) -> "InMemoryRepository":
         return cls()
 
     async def open(self) -> None:
@@ -146,15 +146,15 @@ class InMemoryTransaction(AbstractTransaction):
 
 ## MongoDB Concrete Implementation
 
-### `MongoDatabase`
+### `MongoRepository`
 
-Implements `AbstractDatabase`. Requires the `[mongodb]` extra. `create()` reads
-`MongoDatabaseSettings` from the environment and stores the URI and database name.
+Implements `AbstractRepository`. Requires the `[mongodb]` extra. `create()` reads
+`MongoRepositorySettings` from the environment and stores the URI and database name.
 `open()` establishes the `AsyncMongoClient` connection using those values.
 `transaction()` is synchronous and returns a `MongoTransactionContext`.
 
 ```python
-class MongoDatabaseSettings(BaseSettings):
+class MongoRepositorySettings(BaseSettings):
     uri: str = "mongodb://localhost:27017"
     db: str = "pipe-ping"
 
@@ -170,14 +170,14 @@ class MongoDatabaseSettings(BaseSettings):
 | `PIPE_PING_MONGODB_DB` | no (default `pipe-ping`) | Database name |
 
 ```python
-class MongoDatabase(AbstractDatabase):
+class MongoRepository(AbstractRepository):
     def __init__(self, uri: str, db: str) -> None:
         self._uri = uri
         self._db_name = db
 
     @classmethod
-    def create(cls) -> "MongoDatabase":
-        settings = MongoDatabaseSettings()
+    def create(cls) -> "MongoRepository":
+        settings = MongoRepositorySettings()
         return cls(uri=settings.uri, db=settings.db)
 
     async def open(self) -> None:

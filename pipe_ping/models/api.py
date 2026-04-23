@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from pipe_ping.models.common import PipelineStatus
-    from pipe_ping.models.db import PipelineResultDocument
+    from pipe_ping.models.repository import PipelineResultDocument
 
 
 class PipelineResultModel(BaseModel):

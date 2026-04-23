@@ -22,8 +22,8 @@ Capabilities are added via `pip install pipe-ping[github,mongodb,desktop]`.
 
 ```text
 [Provider plugins]        [Repository plugins]      [Notifier plugins]
-  GitHubProvider    ──→   AbstractDatabase     ──→   DesktopNotifier
-  GitLabProvider          (MongoDatabase)            WebhookNotifier
+  GitHubProvider    ──→   AbstractRepository   ──→   DesktopNotifier
+  GitLabProvider          (MongoRepository)            WebhookNotifier
   JenkinsProvider   ──↘   AbstractTransaction  ──↗   EmailNotifier
   CircleCIProvider        read / upsert              SMSNotifier
          ↑                       ↑
@@ -38,7 +38,7 @@ Model transformation at each boundary:
 | Stage | Model | Location |
 | --- | --- | --- |
 | Provider output | `PipelineResult` | `pipe_ping/models/provider.py` |
-| Repository storage | `PipelineResultDocument` | `pipe_ping/models/db.py` |
+| Repository storage | `PipelineResultDocument` | `pipe_ping/models/repository.py` |
 | Transition event | `StatusChangeEvent` | `pipe_ping/models/events.py` |
 | API response | `PipelineResultModel` | `pipe_ping/models/api.py` |
 | Aggregated stats | `BuildSummary` | `pipe_ping/models/api.py` |
@@ -52,11 +52,11 @@ pipe_ping/
   main.py               startup: scheduler + API server
   config.py             PipePingSettings (core vars only), get_settings()
   scheduler.py          APScheduler polling loop + status-change detection
-  db/
+  repository/
     __init__.py
-    base.py             AbstractDatabase, AbstractTransactionContext, AbstractTransaction
-    memory.py           InMemoryDatabase — ships with core, no extras required
-    mongo.py            MongoDatabase — requires [mongodb] extra
+    base.py             AbstractRepository, AbstractTransactionContext, AbstractTransaction
+    memory.py           InMemoryRepository — ships with core, no extras required
+    mongo.py            MongoRepository — requires [mongodb] extra
   providers/
     __init__.py         entry-point discovery via importlib.metadata
     base.py             BaseProvider ABC
@@ -73,7 +73,7 @@ pipe_ping/
     __init__.py         re-exports all public model names
     common.py           PipelineStatus StrEnum
     provider.py         PipelineResult
-    db.py               PipelineResultDocument
+    repository.py       PipelineResultDocument
     api.py              PipelineResultModel, BuildSummary
     events.py           StatusChangeEvent
   api/
@@ -110,8 +110,8 @@ github  = "pipe_ping.providers.github:GitHubProvider"
 gitlab  = "pipe_ping.providers.gitlab:GitLabProvider"
 
 [project.entry-points."pipe_ping.repositories"]
-memory  = "pipe_ping.db.memory:InMemoryDatabase"
-mongodb = "pipe_ping.db.mongo:MongoDatabase"
+memory  = "pipe_ping.repository.memory:InMemoryRepository"
+mongodb = "pipe_ping.repository.mongo:MongoRepository"
 
 [project.entry-points."pipe_ping.notifiers"]
 desktop = "pipe_ping.notifiers.desktop:DesktopNotifier"

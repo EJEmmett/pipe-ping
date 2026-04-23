@@ -82,7 +82,7 @@ per-plugin configuration references.
 | Group | Purpose | Base class |
 | --- | --- | --- |
 | `pipe_ping.providers` | Poll CI/CD platforms | `BaseProvider` |
-| `pipe_ping.repositories` | Persist and retrieve results | `AbstractDatabase` |
+| `pipe_ping.repositories` | Persist and retrieve results | `AbstractRepository` |
 | `pipe_ping.notifiers` | Deliver alerts on transitions | `BaseNotifier` |
 
 ## Provider Plugin Contract
@@ -114,10 +114,10 @@ gitlab = "pipe_ping.providers.gitlab:GitLabProvider"
 ## Repository Plugin Contract
 
 ```python
-class AbstractDatabase(ABC):
+class AbstractRepository(ABC):
     @classmethod
     @abstractmethod
-    def create(cls) -> "AbstractDatabase": ...
+    def create(cls) -> "AbstractRepository": ...
 
     @abstractmethod
     async def open(self) -> None: ...
@@ -151,7 +151,7 @@ Built-in repository registrations:
 
 ```toml
 [project.entry-points."pipe_ping.repositories"]
-mongo  = "pipe_ping.db.mongo:MongoDatabase"
+mongo  = "pipe_ping.repository.mongo:MongoRepository"
 ```
 
 Third-party and additional built-in backends register into the same group from their own
