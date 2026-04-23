@@ -34,6 +34,8 @@ Status-change detection is the core logic: only transitions are acted on, not ev
 ## Planning
 
 > **Note for Claude:** When adding new design decisions, specs, or forward-looking content, create a file in `planning/` and add a pointer here — do not write planning content directly into this file.
+>
+> **Precedence rule:** The `planning/` docs are the authoritative source of truth for architecture, interfaces, and conventions. If existing code (e.g. `config.py`, models, or entry points) conflicts with a planning doc, treat the planning doc as correct and the code as not yet updated. Do not propagate patterns from stale code — implement what the planning docs specify.
 
 See [`planning/`](planning/) for design docs:
 
@@ -60,22 +62,39 @@ See [`planning/`](planning/) for design docs:
 
 ## Environment Variables
 
-All vars are prefixed `PIPE_PING_`. Nested settings use `__` as the delimiter.
+All vars are prefixed `PIPE_PING_`. **Each plugin owns its own env vars** — core knows
+nothing about plugin settings. See the planning docs for the full per-plugin reference.
 
 ```env
-# CI/CD Provider Tokens
-PIPE_PING_PROVIDER__GITHUB_TOKEN=ghp_...
-PIPE_PING_PROVIDER__GITLAB_TOKEN=glpat-...
-
-# MongoDB
-PIPE_PING_DATABASE__MONGODB_URI=mongodb://localhost:27017
-PIPE_PING_DATABASE__MONGODB_DB=pipe-ping
-
-# Polling
+# --- Core (pipe_ping/config.py) ---
+PIPE_PING_WATCH_REPOS=owner/repo1,owner/repo2   # comma-separated
 PIPE_PING_POLL_INTERVAL_SECONDS=60
 
-# Repos to watch (comma-separated owner/repo)
-PIPE_PING_WATCH_REPOS=owner/repo1,owner/repo2
+# --- GitHub provider (PIPE_PING_GITHUB_) ---
+PIPE_PING_GITHUB_TOKEN=ghp_...
+
+# --- GitLab provider (PIPE_PING_GITLAB_) ---
+PIPE_PING_GITLAB_TOKEN=glpat-...
+
+# --- MongoDB repository (PIPE_PING_MONGODB_) ---
+PIPE_PING_MONGODB_URI=mongodb://localhost:27017
+PIPE_PING_MONGODB_DB=pipe-ping
+
+# --- Webhook notifier (PIPE_PING_WEBHOOK_) ---
+PIPE_PING_WEBHOOK_URL=https://...
+
+# --- Email notifier (PIPE_PING_EMAIL_) ---
+PIPE_PING_EMAIL_SMTP_HOST=smtp.example.com
+PIPE_PING_EMAIL_SMTP_PORT=587
+PIPE_PING_EMAIL_SMTP_USER=user@example.com
+PIPE_PING_EMAIL_SMTP_PASSWORD=...
+PIPE_PING_EMAIL_SMTP_TO=alerts@example.com
+
+# --- SMS notifier (PIPE_PING_SMS_) ---
+PIPE_PING_SMS_TWILIO_ACCOUNT_SID=ACxxx...
+PIPE_PING_SMS_TWILIO_AUTH_TOKEN=...
+PIPE_PING_SMS_TWILIO_FROM=+15550001234
+PIPE_PING_SMS_TWILIO_TO=+15559876543
 ```
 
 ## Common Commands (via Just)
