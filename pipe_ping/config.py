@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import TYPE_CHECKING, Annotated
 
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BeforeValidator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if TYPE_CHECKING:
@@ -26,19 +26,6 @@ def _split_parser(
 CommaSeparatedList = Annotated[list[str], BeforeValidator(_split_parser(","))]
 
 
-class ProviderSettings(BaseModel):
-    github_token: str | None = None
-    gitlab_token: str | None = None
-
-
-class NotifierSettings(BaseModel): ...
-
-
-class DatabaseSettings(BaseModel):
-    mongodb_uri: str = "mongodb://localhost:27017"
-    mongodb_db: str = "pipe-ping"
-
-
 class PipePingSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="PIPE_PING_",
@@ -47,9 +34,6 @@ class PipePingSettings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    provider: ProviderSettings = ProviderSettings()
-    notifier: NotifierSettings = NotifierSettings()
-    database: DatabaseSettings = DatabaseSettings()
     watch_repos: CommaSeparatedList | None = None
     poll_interval_seconds: int = 60
 
