@@ -17,25 +17,48 @@ AbstractRepository          AbstractTransactionContext     AbstractTransaction
 
 ```python
 class AbstractRepository(ABC):
+    _opened: bool = False
+
     @classmethod
     @abstractmethod
-    def create(cls) -> "AbstractRepository": ...
+    def create(cls) -> "Self": ...
+
+    async def open(self) -> None:
+        await self._open()
+        self._opened = True
+
+    async def close(self) -> None:
+        self._require_open()
+        await self._close()
+        self._opened = False
+
+    def transaction(self) -> AbstractTransactionContext:
+        self._require_open()
+        return self._transaction()
+
+    def _require_open(self) -> None:
+        if not self._opened:
+            raise RuntimeError(f"{type(self).__name__}.open() must be called first")
 
     @abstractmethod
-    async def open(self) -> None: ...
+    async def _open(self) -> None: ...
 
     @abstractmethod
-    async def close(self) -> None: ...
+    async def _close(self) -> None: ...
 
     @abstractmethod
-    def transaction(self) -> AbstractTransactionContext: ...
+    def _transaction(self) -> AbstractTransactionContext: ...
 ```
 
 `create()` reads the plugin's own settings from the environment and returns a configured
 instance. Core calls this once at startup, then calls `open()` to establish the connection,
 and passes the instance to the scheduler and API.
 
-`open` / `close` manage the connection pool and auth handshake.
+`open` / `close` / `transaction` are **concrete** on the ABC — they enforce the lifecycle
+invariant (`open()` before `close()` or `transaction()`), then delegate to the abstract
+`_open()` / `_close()` / `_transaction()` hooks that subclasses implement. Calling
+`close()` or `transaction()` before `open()` raises `RuntimeError`.
+
 `transaction` is **synchronous** — it returns a context manager, it does not await one.
 
 ### `AbstractTransactionContext`
@@ -88,11 +111,27 @@ _id = f"{result.repo}#{result.id}"   # e.g. "owner/repo#12345678"
 This key is globally unique across all providers and repos. Re-polling the same run
 overwrites the previous document — idempotent by design.
 
+### `PipelineResultDocument.from_result()`
+
+`PipelineResultDocument` carries a classmethod factory that constructs the document from
+a `PipelineResult`, computing the composite `_id` and copying all remaining fields via
+`model_dump`. Both `MemoryTransaction` and `MongoTransaction` use this factory instead
+of constructing the document inline — keeping the key-computation logic in one place.
+
+```python
+@classmethod
+def from_result(cls, result: "PipelineResult") -> "PipelineResultDocument":
+    return cls(
+        _id=f"{result.repo}#{result.id}",
+        **result.model_dump(exclude={"id"}),
+    )
+```
+
 ---
 
 ## In-Memory Concrete Implementation
 
-`InMemoryRepository` ships with core — no extras required. It holds all documents in a
+`MemoryRepository` ships with core — no extras required. It holds all documents in a
 plain dict for the lifetime of the process. Data does not survive restarts. Its primary
 use is as the default backend when no persistent repository is installed, and as the
 test double for scheduler unit tests.
@@ -100,39 +139,36 @@ test double for scheduler unit tests.
 `create()` requires no configuration and returns a new instance immediately.
 
 ```python
-class InMemoryRepository(AbstractRepository):
+class MemoryRepository(AbstractRepository):
     @classmethod
-    def create(cls) -> "InMemoryRepository":
+    def create(cls) -> "Self":
         return cls()
 
-    async def open(self) -> None:
+    async def _open(self) -> None:
         self._store: dict[str, PipelineResultDocument] = {}
 
-    async def close(self) -> None:
+    async def _close(self) -> None:
         self._store.clear()
 
-    def transaction(self) -> "InMemoryTransactionContext":
-        return InMemoryTransactionContext(self._store)
+    def _transaction(self) -> "MemoryTransactionContext":
+        return MemoryTransactionContext(self._store)
 ```
 
-`InMemoryTransactionContext` and `InMemoryTransaction` follow the same two-layer pattern
+`MemoryTransactionContext` and `MemoryTransaction` follow the same two-layer pattern
 as the MongoDB implementation. Because there are no concurrent writers within a single
 async process, the transaction context needs no locking — `__aenter__` simply returns
-an `InMemoryTransaction` wrapping the shared store dict, and `__aexit__` is a no-op on
+an `MemoryTransaction` wrapping the shared store dict, and `__aexit__` is a no-op on
 clean exit.
 
 ```python
-class InMemoryTransaction(AbstractTransaction):
+class MemoryTransaction(AbstractTransaction):
     def __init__(self, store: dict[str, PipelineResultDocument]) -> None:
         self._store = store
 
     async def write_one_pipeline_result(
         self, result: PipelineResult
     ) -> PipelineResultDocument:
-        doc = PipelineResultDocument(
-            id=f"{result.repo}#{result.id}",
-            **result.model_dump(exclude={"id"}),
-        )
+        doc = PipelineResultDocument.from_result(result)
         self._store[doc.id] = doc
         return doc
 
@@ -176,18 +212,18 @@ class MongoRepository(AbstractRepository):
         self._db_name = db
 
     @classmethod
-    def create(cls) -> "MongoRepository":
+    def create(cls) -> "Self":
         settings = MongoRepositorySettings()
         return cls(uri=settings.uri, db=settings.db)
 
-    async def open(self) -> None:
+    async def _open(self) -> None:
         self.client = AsyncMongoClient(self._uri)
         self.database = self.client.get_database(self._db_name)
 
-    async def close(self) -> None:
+    async def _close(self) -> None:
         await self.client.close()
 
-    def transaction(self) -> "MongoTransactionContext":
+    def _transaction(self) -> "MongoTransactionContext":
         return MongoTransactionContext(self.database)
 ```
 
@@ -241,10 +277,7 @@ class MongoTransaction(AbstractTransaction):
     async def write_one_pipeline_result(
         self, result: PipelineResult
     ) -> PipelineResultDocument:
-        doc = PipelineResultDocument(
-            id=f"{result.repo}#{result.id}",
-            **result.model_dump(exclude={"id"}),
-        )
+        doc = PipelineResultDocument.from_result(result)
         await self.collection.update_one(
             {"_id": doc.id},
             {"$set": doc.model_dump(by_alias=True)},

@@ -42,7 +42,7 @@ See [`planning/`](planning/) for design docs:
 - [`planning/architecture.md`](planning/architecture.md) — system overview, data flow, full package layout, toolchain
 - [`planning/build-order.md`](planning/build-order.md) — phased implementation roadmap with checkpoints
 - [`planning/plugin-system.md`](planning/plugin-system.md) — entry point discovery, all three plugin contracts, third-party extension guide
-- [`planning/repository-impl.md`](planning/repository-impl.md) — repository layer ABI and MongoDB concrete implementation
+- [`planning/repository.md`](planning/repository.md) — repository layer ABI and MongoDB concrete implementation
 - [`planning/status-detection.md`](planning/status-detection.md) — transition table, detection algorithm, `StatusChangeEvent` model, test requirements
 - [`planning/providers.md`](planning/providers.md) — `BaseProvider` contract, GitHub and GitLab implementations, deferred providers
 - [`planning/notifiers.md`](planning/notifiers.md) — `BaseNotifier` contract, all four notifier implementations
@@ -51,6 +51,7 @@ See [`planning/`](planning/) for design docs:
 ## Conventions
 
 - **Type hints on every function signature** — no exceptions
+- **`TYPE_CHECKING` imports** — imports only used in annotations go under `if TYPE_CHECKING:`; quote the annotation (e.g. `result: "PipelineResult"`) so it isn't evaluated at runtime. **Exception: Pydantic model field types must be real runtime imports** — Pydantic calls `get_type_hints()` to build validators and needs every field type in the module namespace, including `datetime` and custom types
 - **Pydantic models for all data** — never raw dicts across boundaries
 - **Async everywhere** — no blocking calls, no `time.sleep()`
 - **No bare except clauses** — always catch specific exceptions

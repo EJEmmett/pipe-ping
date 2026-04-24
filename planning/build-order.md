@@ -28,7 +28,7 @@ is installed. All writes are upserts keyed by `{repo}#{run_id}`. Also add
 `StatusChangeEvent` to `pipe_ping/models/events.py` so the scheduler and notifiers share
 one import location.
 
-**Checkpoint:** unit tests prove that `InMemoryRepository` round-trips a
+**Checkpoint:** unit tests prove that `MemoryRepository` round-trips a
 `write_one_pipeline_result` / `read_one_pipeline_result` pair and preserves all fields
 including `raw`. Run without any optional extras installed.
 

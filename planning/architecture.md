@@ -55,7 +55,7 @@ pipe_ping/
   repository/
     __init__.py
     base.py             AbstractRepository, AbstractTransactionContext, AbstractTransaction
-    memory.py           InMemoryRepository — ships with core, no extras required
+    memory.py           MemoryRepository — ships with core, no extras required
     mongo.py            MongoRepository — requires [mongodb] extra
   providers/
     __init__.py         entry-point discovery via importlib.metadata
@@ -110,7 +110,7 @@ github  = "pipe_ping.providers.github:GitHubProvider"
 gitlab  = "pipe_ping.providers.gitlab:GitLabProvider"
 
 [project.entry-points."pipe_ping.repositories"]
-memory  = "pipe_ping.repository.memory:InMemoryRepository"
+memory  = "pipe_ping.repository.memory:MemoryRepository"
 mongodb = "pipe_ping.repository.mongo:MongoRepository"
 
 [project.entry-points."pipe_ping.notifiers"]
