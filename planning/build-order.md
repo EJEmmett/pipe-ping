@@ -34,19 +34,6 @@ including `raw`. Run without any optional extras installed.
 
 ---
 
-## Phase 2b — MongoDB Repository
-
-**Files:** `pipe_ping/repository/mongo.py`
-
-MongoDB concrete implementation of the repository ABCs. Requires the `[mongodb]` extra
-(`pymongo[async]`). Registered as the `mongodb` entry point alongside `memory`.
-
-**Checkpoint:** integration test against a `pipe_ping_test` MongoDB database proves that
-`write_one_pipeline_result` upserts a document and `read_one_pipeline_result` returns it.
-Round-trip must preserve all fields including `raw`.
-
----
-
 ## Phase 3 — Provider Plugin Infrastructure
 
 **Files:** `pipe_ping/providers/__init__.py`, `pipe_ping/providers/base.py`
@@ -60,7 +47,7 @@ An intentionally broken entry point is skipped with a logged warning.
 
 ---
 
-## Phase 4 — GitHub Provider
+## Phase 3a — GitHub Provider
 
 **Files:** `pipe_ping/providers/github.py`
 
@@ -90,33 +77,30 @@ and detection algorithm.
 
 ---
 
-## Phase 6 — GitLab Provider
+## Phase 6 — Notifier Plugin Infrastructure
 
-**Files:** `pipe_ping/providers/gitlab.py`
+**Files:** `pipe_ping/notifiers/__init__.py`, `pipe_ping/notifiers/base.py`
 
-`GitLabProvider` calls the GitLab Pipelines REST API. Resolves `owner/name` to a project
-ID via the projects API and caches the result for the lifetime of the instance.
+Discovery mirrors provider discovery. `BaseNotifier` defines `notify(event)`.
 
-**Checkpoint:** same mock HTTP test pattern as Phase 4. Status mapping covers at least
-`running`, `success`, `failed`, `canceled`.
+**Checkpoint:** discovery function returns a dict containing the built-in notifier names.
+An intentionally broken entry point is skipped with a logged warning.
 
 ---
 
-## Phase 7 — Notifier Plugin Infrastructure + Desktop Notifier
+## Phase 6a — Desktop Notifier
 
-**Files:** `pipe_ping/notifiers/__init__.py`, `pipe_ping/notifiers/base.py`,
-`pipe_ping/notifiers/desktop.py`
+**Files:** `pipe_ping/notifiers/desktop.py`
 
-Discovery mirrors provider discovery. `BaseNotifier` defines `notify(event)`. The desktop
-notifier fires a cross-platform toast via the `desktop-notifier` library. On headless
-systems where no display is available, the plugin load fails gracefully with a warning.
+Fires a cross-platform toast via the `desktop-notifier` library. On headless systems where
+no display is available, the plugin load fails gracefully with a warning.
 
 **Checkpoint:** injecting a `StatusChangeEvent` into `DesktopNotifier.notify` produces a
 visible toast (manual test). Unit test mocks the `desktop-notifier` send call.
 
 ---
 
-## Phase 8 — REST API
+## Phase 7 — REST API
 
 **Files:** `pipe_ping/api/__init__.py`, `pipe_ping/api/routers.py`
 
@@ -134,7 +118,7 @@ GET /summary           failure rates, average duration per repo
 
 ---
 
-## Phase 9 — CLI + Entry Point
+## Phase 8 — CLI + Entry Point
 
 **Files:** `pipe_ping/cli.py`, `pipe_ping/main.py`
 
@@ -154,10 +138,12 @@ token, and writes a result to the repository. `pipe-ping status` exits cleanly.
 
 ---
 
-## Phase 10 — Deferred
+## Phase 9 — Deferred
 
-Lower priority. Do not start until Phase 9 is complete and stable.
+Lower priority. Do not start until Phase 8 is complete and stable.
 
+- **GitLab provider** — calls GitLab Pipelines REST API; resolves `owner/name` to a project ID via the projects API and caches it for the lifetime of the instance; `[gitlab]` extra
+- **MongoDB repository** — `pymongo[async]`; `[mongodb]` extra
 - **Jenkins provider** — requires per-installation base URL + username/token
 - **CircleCI provider** — v2 API, `CIRCLE_TOKEN` header
 - **Webhook notifier** — POST `StatusChangeEvent` as JSON to a configurable URL; `[webhook]` extra

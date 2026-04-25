@@ -303,4 +303,4 @@ class MongoTransaction(AbstractTransaction):
 
 - `read_many_pipeline_results` — query by repo, branch, status, or time range
 - Schema migrations
-- SQLite and JSON backends (see Phase 10 in [build-order.md](build-order.md))
+- SQLite and JSON backends (see Phase 9 in [build-order.md](build-order.md))
