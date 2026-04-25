@@ -1,0 +1,13 @@
+from pipe_ping.errors import PipePingError
+
+
+class PipePingProviderError(PipePingError): ...
+
+
+class PipePingProviderCancelledError(PipePingProviderError): ...
+
+
+class PipePingProviderMisconfiguredError(PipePingProviderCancelledError): ...
+
+
+class PipePingProviderAuthenticationError(PipePingProviderCancelledError): ...

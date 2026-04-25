@@ -13,14 +13,6 @@ class PipelineResultDocument(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str = Field(alias="_id")
-
-    @classmethod
-    def from_result(cls, result: "PipelineResult") -> "PipelineResultDocument":
-        return cls(
-            _id=f"{result.repo}#{result.id}",
-            **result.model_dump(exclude={"id"}),
-        )
-
     provider: str
     repo: str
     branch: str
@@ -31,3 +23,10 @@ class PipelineResultDocument(BaseModel):
     started_at: datetime | None
     finished_at: datetime | None
     raw: dict
+
+    @classmethod
+    def from_result(cls, result: "PipelineResult") -> "PipelineResultDocument":
+        return cls(
+            _id=f"{result.repo}#{result.id}",
+            **result.model_dump(exclude={"id"}),
+        )

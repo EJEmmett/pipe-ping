@@ -3,25 +3,27 @@
 A provider polls one CI/CD platform and returns a list of pipeline results. Each provider
 is a plugin — one file, one entry point. No changes to the core are needed to add a new one.
 
-## `BaseProvider` ABC
+## Contract
+
+The provider contract is a type alias, not a base class:
 
 ```python
-# pipe_ping/providers/base.py
-class BaseProvider(ABC):
-    @classmethod
-    @abstractmethod
-    def create(cls) -> "BaseProvider": ...
-
-    @abstractmethod
-    async def fetch_builds(self, repo: str) -> list[PipelineResult]: ...
+# pipe_ping/provider/types.py
+type AwaitableProvider = Callable[[ClientSession], Awaitable[list[PipelineResult]]]
 ```
 
-- `create()` reads the provider's own settings from the environment and returns a
-  configured instance. Core calls this once at startup and passes the instance around.
-- `repo` is always `"owner/name"` format
-- Must handle pagination internally — callers receive the full result list
-- Must be stateless and read-only — no side effects
-- Must not let HTTP errors propagate (see error handling below)
+A provider is any `async` function that accepts a `ClientSession` and returns
+`list[PipelineResult]`. Core discovers providers via entry points and calls them directly —
+no instantiation, no factory method.
+
+```python
+# minimal valid provider
+async def my_provider(session: ClientSession) -> list[PipelineResult]:
+    ...
+```
+
+Settings are read inside the function from the environment. The function is responsible for
+all error handling — nothing should propagate to the caller (see error handling below).
 
 ## `PipelineResult` Field Mapping
 
@@ -31,7 +33,7 @@ Every provider must map its API response to `PipelineResult` (`pipe_ping/models/
 | --- | --- | --- |
 | `id` | `str` | Platform-native run ID, as a string |
 | `provider` | `str` | Entry point name: `"github"`, `"gitlab"`, etc. |
-| `repo` | `str` | `"owner/name"` — passed in from the caller |
+| `repo` | `str` | `"owner/name"` — sourced from provider settings |
 | `branch` | `str` | Ref name without `refs/heads/` prefix |
 | `commit_sha` | `str` | Full 40-character SHA |
 | `status` | `PipelineStatus` | Mapped from platform status string (see tables below) |
@@ -52,13 +54,13 @@ Every provider must map its API response to `PipelineResult` (`pipe_ping/models/
 
 Never let provider exceptions reach the scheduler loop. The scheduler catches
 `ProviderAuthError` and disables the provider until restart. All other errors are
-absorbed by returning an empty list from `fetch_builds`.
+absorbed by returning an empty list.
 
 ---
 
 ## GitHub Actions Provider
 
-**Entry point:** `github = "pipe_ping.providers.github:GitHubProvider"`
+**Entry point:** `github = "pipe_ping.provider.github.provider:github_provider"`
 
 **Endpoint:** `GET https://api.github.com/repos/{owner}/{repo}/actions/runs`
 
@@ -67,6 +69,7 @@ absorbed by returning an empty list from `fetch_builds`.
 ```python
 class GitHubSettings(BaseSettings):
     token: str
+    repos: CommaSeparatedList = []
 
     model_config = SettingsConfigDict(
         env_prefix="PIPE_PING_GITHUB_",
@@ -77,6 +80,7 @@ class GitHubSettings(BaseSettings):
 | Env var | Required | Description |
 | --- | --- | --- |
 | `PIPE_PING_GITHUB_TOKEN` | yes | Personal access token (`ghp_...`) |
+| `PIPE_PING_GITHUB_REPOS` | yes | Comma-separated `owner/name` list |
 
 **Auth:** `Authorization: Bearer {token}` header, token sourced from `GitHubSettings`
 
@@ -111,7 +115,7 @@ class GitHubSettings(BaseSettings):
 
 ## GitLab CI Provider
 
-**Entry point:** `gitlab = "pipe_ping.providers.gitlab:GitLabProvider"`
+**Entry point:** `gitlab = "pipe_ping.provider.gitlab.provider:gitlab_provider"`
 
 **Endpoint:** `GET https://gitlab.com/api/v4/projects/{project_id}/pipelines`
 
@@ -120,6 +124,7 @@ class GitHubSettings(BaseSettings):
 ```python
 class GitLabSettings(BaseSettings):
     token: str
+    repos: CommaSeparatedList = []
 
     model_config = SettingsConfigDict(
         env_prefix="PIPE_PING_GITLAB_",
@@ -130,6 +135,7 @@ class GitLabSettings(BaseSettings):
 | Env var | Required | Description |
 | --- | --- | --- |
 | `PIPE_PING_GITLAB_TOKEN` | yes | Personal access token (`glpat-...`) |
+| `PIPE_PING_GITLAB_REPOS` | yes | Comma-separated `owner/name` list |
 
 **Auth:** `PRIVATE-TOKEN: {token}` header, token sourced from `GitLabSettings`
 
@@ -140,7 +146,8 @@ GitLab's pipeline API requires a numeric project ID. The provider must first res
 
 `GET /api/v4/projects/{urllib.parse.quote("owner/name", safe="")}`
 
-Cache this lookup for the lifetime of the provider instance.
+Cache this lookup at module level (e.g. a `dict` populated on first call) so the extra
+request only happens once per process.
 
 **Key query params:**
 
@@ -177,7 +184,7 @@ Cache this lookup for the lifetime of the provider instance.
 
 ### Jenkins
 
-- Requires per-installation base URL (env: `PIPE_PING_PROVIDER__JENKINS_BASE_URL`)
+- Requires per-installation base URL (env: `PIPE_PING_JENKINS_BASE_URL`)
 - Auth: username + API token via HTTP Basic
 - Endpoint: `GET {base_url}/job/{job_name}/api/json?tree=builds[...]`
 - Status mapping: `building=True` → `RUNNING`; `result: SUCCESS/FAILURE/ABORTED/NOT_BUILT`
@@ -185,5 +192,5 @@ Cache this lookup for the lifetime of the provider instance.
 ### CircleCI
 
 - Endpoint: `GET https://circleci.com/api/v2/project/gh/{owner}/{repo}/pipeline`
-- Auth: `Circle-Token: {settings.provider.circleci_token}` header
+- Auth: `Circle-Token: {token}` header
 - Pipelines and workflows are separate resources — may require two API calls per repo
