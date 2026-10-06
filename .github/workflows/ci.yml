@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
 
 jobs:
   lint:
@@ -18,15 +19,22 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run ty check
+      - name: Audit dependencies
+        continue-on-error: true
+        run: uv audit --preview-features audit
 
   test:
-    name: Test
+    name: Test (Python ${{ matrix.python-version }})
     needs: lint
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - run: uv sync
-      - run: uv run pytest
+      - run: sudo apt-get update && sudo apt-get install -y dbus
+      - run: uv run nox -s tests-${{ matrix.python-version }}

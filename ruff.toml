@@ -28,10 +28,14 @@ select = [
     "TRY",   # tryceratops — exception handling patterns
 ]
 ignore = [
-    "ANN401", # Any is occasionally necessary
-    "TRY003", # long exception messages are fine
-    "S311",   # random is fine for non-cryptographic use
+    "ANN401",  # Any is occasionally necessary
+    "ASYNC109", # Opinionated rule, timeout parameter pattern is intentional
+    "TRY003",  # long exception messages are fine
+    "S311",    # random is fine for non-cryptographic use
 ]
 
+[lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+
 [lint.per-file-ignores]
-"tests/**" = ["ANN", "S101"]
+"**/tests/**" = ["ANN", "S101"]

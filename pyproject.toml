@@ -1,48 +1,73 @@
 [project]
 name = "pipe-ping"
-dynamic = ["version"]
-description = "Async CI/CD pipeline monitor with cross-platform toast notifications"
+version = "0.1.0"
+description = "A pluggable CI/CD monitor that notifies you when pipelines succeed, fail or are cancelled"
+readme = "README.md"
 authors = [{ name = "Edward Emmett", email = "edemms12@gmail.com" }]
 license = "MIT"
 requires-python = ">=3.13"
+keywords = ["github-actions", "ci", "cd", "pipelines", "notifications", "monitoring"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Monitoring",
+]
 dependencies = [
-    "aiohttp>=3.11",
-    "apscheduler>=3.10",
-    "fastapi>=0.115",
-    "pymongo>=4.10",
+    "aiohttp>=3.14.3",
+    "aiosqlite>=0.22",
+    "desktop-notifier>=6.2",
+    "platformdirs>=4.10.0",
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
+    "python-json-logger>=4.1.0",
+    "rich>=15.0.0",
     "typer>=0.15",
-    "uvicorn>=0.34",
-    "desktop-notifier>=6.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/EJEmmett/pipe-ping"
+Documentation = "https://ejemmett.github.io/pipe-ping/"
+Issues = "https://github.com/EJEmmett/pipe-ping/issues"
+Releases = "https://github.com/EJEmmett/pipe-ping/releases"
+
 [project.scripts]
-pipe-ping = "pipe_ping.cli:app"
+pipe-ping = "pipe_ping.client:app"
 
-[project.entry-points."pipe_ping.providers"]
-github = "pipe_ping.providers.github:GitHubProvider"
-gitlab = "pipe_ping.providers.gitlab:GitLabProvider"
+[project.entry-points."pipe-ping.providers"]
+GitHubProvider = "pipe_ping.plugin._impl.github:GitHubProvider"
 
-[project.entry-points."pipe_ping.notifiers"]
-desktop = "pipe_ping.notifiers.desktop:DesktopNotifier"
+[project.entry-points."pipe-ping.repository"]
+SqliteRepository = "pipe_ping.plugin._impl.sqlite:SqliteRepository"
+
+[project.entry-points."pipe-ping.notifiers"]
+ConsoleNotifier = "pipe_ping.plugin._impl.console:ConsoleNotifier"
+DesktopNotifier = "pipe_ping.plugin._impl.desktop:DesktopNotifier"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.version]
-path = "pipe_ping/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pipe_ping"]
 
 [dependency-groups]
 dev = [
-    "aioresponses>=0.7",
     "pytest>=8.3",
     "pytest-asyncio>=0.25",
     "ruff>=0.9",
     "ty>=0.0.1a14",
     "prek>=0.1",
+    "dbus-fast>=5.2",
+    "nox>=2026.8",
+]
+docs = [
+    "mkdocstrings-python>=2.0.9",
+    "zensical>=0.0.68",
 ]

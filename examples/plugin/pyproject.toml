@@ -1,0 +1,16 @@
+[project]
+name = "pipe-ping-example"
+version = "0.1.0"
+description = "Example Pipe-Ping plugin"
+requires-python = ">=3.13"
+dependencies = ["pipe-ping"]
+
+[project.entry-points."pipe-ping.providers"]
+ExampleProvider = "pipe_ping_example:ExampleProvider"
+
+[project.entry-points."pipe-ping.notifiers"]
+ExampleNotifier = "pipe_ping_example:ExampleNotifier"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

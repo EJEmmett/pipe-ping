@@ -8,6 +8,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+*.spec
 eggs/
 parts/
 var/
@@ -30,8 +31,13 @@ env/
 .env
 .env.local
 
+# Documentation
+site/
+.cache/
+
 # Testing
 .pytest_cache/
+.nox/
 .coverage
 coverage.xml
 htmlcov/

@@ -1,0 +1,34 @@
+version = 1
+disable_existing_loggers = false
+
+[formatters.plain]
+format = "%(asctime)s %(levelname)s %(name)s %(message)s"
+
+[formatters.json]
+"()" = "pythonjsonlogger.json.JsonFormatter"
+fmt = "%(timestamp)s %(levelname)s %(name)s %(message)s"
+rename_fields = { name = "logger", levelname = "level" }
+timestamp = true
+
+[handlers.console]
+class = "logging.StreamHandler"
+formatter = "plain"
+stream = "ext://sys.stdout"
+
+[handlers.structured]
+class = "logging.handlers.RotatingFileHandler"
+formatter = "json"
+level = "DEBUG"
+
+[handlers.queue]
+class = "logging.handlers.QueueHandler"
+listener = "pipe_ping.tools.logging.AutoStartQueueListener"
+handlers = ["console", "structured"]
+respect_handler_level = true
+
+[root]
+level = "DEBUG"
+handlers = ["queue"]
+
+[loggers.aiosqlite]
+level = "INFO"

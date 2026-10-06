@@ -1,0 +1,10 @@
+[Unit]
+Description=Pipe-Ping GitHub Actions monitor
+
+[Service]
+ExecStart=%h/.local/bin/pipe-ping daemon
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

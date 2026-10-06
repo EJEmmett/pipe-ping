@@ -1,81 +1,60 @@
 # Pipe-Ping
 
-> Ping your pipelines. Know before they break.
+Pipe-Ping monitors your CI/CD pipelines and notifies you when they succeed,
+fail or are cancelled.
 
-Async CI/CD pipeline monitor with plugin capabilities to define providers and notifiers.
+- Supports GitHub Actions, including GitHub Enterprise Server.
+- Notifies you in the terminal and with desktop notifications on Linux, macOS
+  and Windows.
+- Reports only status changes. Pipelines that finish while Pipe-Ping is stopped
+  are reported when it next starts.
+- Runs in the background as a systemd service, launchd agent or Windows
+  scheduled task.
+- Supports plugins for other CI/CD services, notification channels and storage
+  backends.
 
-## Prerequisites
+**Documentation:** <https://ejemmett.github.io/pipe-ping/>
 
-- [Python 3.13](https://www.python.org/downloads/)
-- [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- [Podman Desktop](https://podman-desktop.io/) (for local MongoDB)
-- [Just](https://just.systems/man/en/packages.html)
+## Quick start
 
-## Getting Started
+Pipe-Ping requires Python 3.13 or later and a GitHub token with read access to
+Actions on the repositories you want to monitor.
 
-1. **Clone and install dependencies**
-
-   ```bash
-   git clone <repo-url>
-   cd Pipe-Ping
-   just install
-   ```
-
-2. **Configure environment**
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Fill in your tokens in `.env`:
-
-   ```env
-   GITHUB_TOKEN=ghp_...
-   GITLAB_TOKEN=glpat-...
-   WATCH_REPOS=owner/repo1,owner/repo2
-   ```
-
-3. **Start MongoDB**
-
-   ```bash
-   just mongo
-   ```
-
-4. **Run Pipe-Ping**
-
-   ```bash
-   just dev        # MongoDB + polling loop + API server
-   ```
-
-   The API is available at `http://localhost:8000`.
-
-## CLI
+Install Pipe-Ping with [uv](https://docs.astral.sh/uv/) or
+[pipx](https://pipx.pypa.io/):
 
 ```bash
-pipe-ping watch              # start polling loop + API server
-pipe-ping status             # current health of all watched repos
-pipe-ping add-repo           # add a repo to the watch list
-pipe-ping list-repos         # list all watched repos
-pipe-ping history <repo>     # build history for a repo
+uv tool install pipe-ping
 ```
 
-## API
-
-```
-GET /builds            # all recent builds
-GET /builds/{repo}     # builds for a specific repo
-GET /summary           # failure rates, avg duration
-GET /health            # service health check
-```
-
-## Just Recipes
+Print the location of the config file:
 
 ```bash
-just install    # uv sync
-just dev        # start MongoDB + pipe-ping watch
-just test       # pytest
-just lint       # ruff check + format check + ty check
-just format     # ruff check --fix + ruff format
-just mongo      # docker compose up -d
-just clean      # stop containers, clear cache
+pipe-ping config-path
 ```
+
+Create the file and add your token and the repositories to monitor:
+
+```env
+PIPE_PING_GITHUB__TOKEN=github_pat_...
+PIPE_PING_GITHUB__REPOS='["owner/repo", "owner/other-repo"]'
+```
+
+Then start Pipe-Ping:
+
+```bash
+pipe-ping daemon
+```
+
+## Learn more
+
+- [Getting started](https://ejemmett.github.io/pipe-ping/getting-started/)
+- [Configuration](https://ejemmett.github.io/pipe-ping/configuration/)
+- [Notifications](https://ejemmett.github.io/pipe-ping/notifications/)
+- [Running in the background](https://ejemmett.github.io/pipe-ping/running-in-the-background/)
+- [Writing a plugin](https://ejemmett.github.io/pipe-ping/plugins/)
+- [Development](https://ejemmett.github.io/pipe-ping/development/)
+
+## License
+
+MIT
