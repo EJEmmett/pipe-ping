@@ -6,26 +6,29 @@ authors = [{ name = "Edward Emmett", email = "edemms12@gmail.com" }]
 license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
-    "aiohttp>=3.11",
-    "apscheduler>=3.10",
-    "fastapi>=0.115",
-    "pymongo>=4.10",
+    "aiohttp>=3.14.3",
+    "aiosqlite>=0.22",
+    "desktop-notifier>=6.2",
+    "platformdirs>=4.10.0",
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
+    "python-json-logger>=4.1.0",
+    "rich>=15.0.0",
     "typer>=0.15",
-    "uvicorn>=0.34",
-    "desktop-notifier>=6.0",
 ]
 
 [project.scripts]
-pipe-ping = "pipe_ping.cli:app"
+pipe-ping = "pipe_ping.client:app"
 
-[project.entry-points."pipe_ping.providers"]
-github = "pipe_ping.providers.github:GitHubProvider"
-gitlab = "pipe_ping.providers.gitlab:GitLabProvider"
+[project.entry-points."pipe-ping.providers"]
+GitHubProvider = "pipe_ping.plugin._impl.github:GitHubProvider"
 
-[project.entry-points."pipe_ping.notifiers"]
-desktop = "pipe_ping.notifiers.desktop:DesktopNotifier"
+[project.entry-points."pipe-ping.repository"]
+SqliteRepository = "pipe_ping.plugin._impl.sqlite:SqliteRepository"
+
+[project.entry-points."pipe-ping.notifiers"]
+ConsoleNotifier = "pipe_ping.plugin._impl.console:ConsoleNotifier"
+DesktopNotifier = "pipe_ping.plugin._impl.desktop:DesktopNotifier"
 
 [build-system]
 requires = ["hatchling"]
@@ -39,10 +42,11 @@ packages = ["pipe_ping"]
 
 [dependency-groups]
 dev = [
-    "aioresponses>=0.7",
     "pytest>=8.3",
     "pytest-asyncio>=0.25",
     "ruff>=0.9",
     "ty>=0.0.1a14",
     "prek>=0.1",
+    "dbus-fast>=5.2",
+    "nox>=2026.8",
 ]

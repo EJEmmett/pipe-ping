@@ -1,81 +1,70 @@
 # Pipe-Ping
 
-> Ping your pipelines. Know before they break.
+Pipe-Ping keeps an eye on your GitHub Actions and lets you know when a
+workflow run passes, fails or gets cancelled, so you don't have to keep a
+browser tab open.
 
-Async CI/CD pipeline monitor with plugin capabilities to define providers and notifiers.
+It checks your repositories every minute and only tells you about runs that
+actually changed. If something finished while it wasn't running, you'll hear
+about it the next time you start it.
 
-## Prerequisites
+## Getting started
 
-- [Python 3.13](https://www.python.org/downloads/)
-- [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- [Podman Desktop](https://podman-desktop.io/) (for local MongoDB)
-- [Just](https://just.systems/man/en/packages.html)
-
-## Getting Started
-
-1. **Clone and install dependencies**
-
-   ```bash
-   git clone <repo-url>
-   cd Pipe-Ping
-   just install
-   ```
-
-2. **Configure environment**
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Fill in your tokens in `.env`:
-
-   ```env
-   GITHUB_TOKEN=ghp_...
-   GITLAB_TOKEN=glpat-...
-   WATCH_REPOS=owner/repo1,owner/repo2
-   ```
-
-3. **Start MongoDB**
-
-   ```bash
-   just mongo
-   ```
-
-4. **Run Pipe-Ping**
-
-   ```bash
-   just dev        # MongoDB + polling loop + API server
-   ```
-
-   The API is available at `http://localhost:8000`.
-
-## CLI
+You'll need Python 3.13 or newer, [uv](https://docs.astral.sh/uv/), and a
+GitHub token that can read Actions on the repositories you want to watch.
 
 ```bash
-pipe-ping watch              # start polling loop + API server
-pipe-ping status             # current health of all watched repos
-pipe-ping add-repo           # add a repo to the watch list
-pipe-ping list-repos         # list all watched repos
-pipe-ping history <repo>     # build history for a repo
+git clone https://github.com/EJEmmett/pipe-ping.git
+cd pipe-ping
+make install
 ```
 
-## API
-
-```
-GET /builds            # all recent builds
-GET /builds/{repo}     # builds for a specific repo
-GET /summary           # failure rates, avg duration
-GET /health            # service health check
-```
-
-## Just Recipes
+Copy the example config and fill in your token and repositories:
 
 ```bash
-just install    # uv sync
-just dev        # start MongoDB + pipe-ping watch
-just test       # pytest
-just lint       # ruff check + format check + ty check
-just format     # ruff check --fix + ruff format
-just mongo      # docker compose up -d
-just clean      # stop containers, clear cache
+cp .env.example .env
 ```
+
+Then run it:
+
+```bash
+uv run pipe-ping daemon
+```
+
+Use `-v` or `-vv` if you want to see what it's doing.
+
+## Notifications
+
+Every change is printed to the terminal. On desktops that support it, you'll
+also get a notification when a run finishes, and clicking it opens the run on
+GitHub. If desktop notifications aren't available, for example on a server or
+in WSL, Pipe-Ping just sticks to the terminal.
+
+## Configuration
+
+Settings can go in `.env` or be set as environment variables. Besides the token
+and repository list, you can point Pipe-Ping at a GitHub Enterprise server,
+change how many recent runs it looks at, or move its database and log files.
+`.env.example` lists everything you can set.
+
+## Extending
+
+Where runs come from, where they're stored and how you're notified are all
+plugins, so other packages can add new ones. `pipe-ping list` shows what's
+installed.
+
+## Development
+
+```bash
+make install   # install dependencies
+make test      # run the tests on every supported Python version
+make lint      # check style and types
+make format    # fix style
+make clean     # remove build output and caches
+```
+
+The desktop notification tests need `dbus-daemon` and are skipped without it.
+
+## License
+
+MIT
