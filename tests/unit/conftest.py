@@ -9,6 +9,7 @@ from pipe_ping.plugin import (
 )
 from pipe_ping.plugin._impl.memory import MemoryRepository
 from pipe_ping.plugin._impl.sqlite import SqliteRepository
+from pipe_ping.plugin.errors import AllPluginsFailedError
 from pipe_ping.tools.settings import SqliteSettings
 
 from tests.fakes import PhonyNotifier, PhonyProvider
@@ -65,3 +66,14 @@ async def sqlite_repository(sqlite_settings):
     yield repository
 
     await repository.teardown()
+
+
+@pytest.fixture
+def daemon_without_providers(monkeypatch):
+    """Make ``pipe-ping daemon`` fail discovery, without configuring real logging."""
+
+    async def start_pipe_ping():
+        raise AllPluginsFailedError("no providers could be loaded")
+
+    monkeypatch.setattr("pipe_ping.client.start_pipe_ping", start_pipe_ping)
+    monkeypatch.setattr("pipe_ping.client.initialize_verbosity", lambda verbose: None)

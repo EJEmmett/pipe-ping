@@ -44,7 +44,7 @@ class ConsoleNotifier:
     console: Console
 
     def __init__(self) -> None:
-        self.console = Console()
+        self.console = Console(soft_wrap=True)
 
     async def setup(self) -> None: ...
     async def teardown(self) -> None: ...

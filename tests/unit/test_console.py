@@ -68,3 +68,13 @@ async def test_notify_empty_prints_nothing(notifier):
     await notifier.notify([])
 
     assert notifier.console.file.getvalue() == ""
+
+
+async def test_notify_keeps_long_lines_unwrapped(result):
+    notifier = ConsoleNotifier()
+    notifier.console.file = io.StringIO()
+    notifier.console.width = 40
+
+    await notifier.notify([result])
+
+    assert len(notifier.console.file.getvalue().splitlines()) == 1

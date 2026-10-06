@@ -13,6 +13,7 @@ from pipe_ping.plugin import (
     REPOSITORY_GROUP,
     discover_entry_points,
 )
+from pipe_ping.plugin.errors import PipePingPluginError
 from pipe_ping.tools import get_settings, initialize_logging
 
 app = typer.Typer(no_args_is_help=True)
@@ -57,7 +58,11 @@ def daemon(verbose: VerboseOption = 0) -> None:
     """Run the pipe-ping daemon."""
     initialize_verbosity(verbose)
 
-    asyncio.run(start_pipe_ping())
+    try:
+        asyncio.run(start_pipe_ping())
+    except PipePingPluginError as e:
+        typer.echo(f"pipe-ping: {e}", err=True)
+        raise typer.Exit(code=1) from e
 
 
 @list_app.command("providers")
