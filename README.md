@@ -3,7 +3,8 @@
 Pipe-Ping monitors your CI/CD pipelines and notifies you when they succeed,
 fail or are cancelled.
 
-- Supports GitHub Actions, including GitHub Enterprise Server.
+- Supports GitHub Actions and GitLab CI/CD, including GitHub Enterprise
+  Server and self-managed GitLab.
 - Notifies you in the terminal and with desktop notifications on Linux, macOS
   and Windows.
 - Reports only status changes. Pipelines that finish while Pipe-Ping is stopped
@@ -17,8 +18,8 @@ fail or are cancelled.
 
 ## Quick start
 
-Pipe-Ping requires Python 3.13 or later and a GitHub token with read access to
-Actions on the repositories you want to monitor.
+Pipe-Ping requires Python 3.13 or later and a GitHub or GitLab token with read
+access to the pipelines you want to monitor.
 
 Install Pipe-Ping with [uv](https://docs.astral.sh/uv/) or
 [pipx](https://pipx.pypa.io/):
@@ -38,6 +39,13 @@ Create the file and add your token and the repositories to monitor:
 ```env
 PIPE_PING_GITHUB__TOKEN=github_pat_...
 PIPE_PING_GITHUB__REPOS='["owner/repo", "owner/other-repo"]'
+```
+
+Or, for GitLab:
+
+```env
+PIPE_PING_GITLAB__TOKEN=glpat-...
+PIPE_PING_GITLAB__PROJECTS='["group/project", "group/subgroup/project"]'
 ```
 
 Then start Pipe-Ping:

@@ -3,7 +3,8 @@
 Pipe-Ping monitors your CI/CD pipelines and notifies you when they succeed,
 fail or are cancelled.
 
-- Supports GitHub Actions, including GitHub Enterprise Server.
+- Supports GitHub Actions and GitLab CI/CD, including GitHub Enterprise
+  Server and self-managed GitLab.
 - Notifies you in the terminal and with desktop notifications on Linux, macOS
   and Windows.
 - Reports only status changes. Pipelines that finish while Pipe-Ping is stopped

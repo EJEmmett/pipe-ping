@@ -1,12 +1,12 @@
 [project]
 name = "pipe-ping"
-version = "0.1.0"
+version = "0.2.0"
 description = "A pluggable CI/CD monitor that notifies you when pipelines succeed, fail or are cancelled"
 readme = "README.md"
 authors = [{ name = "Edward Emmett", email = "edemms12@gmail.com" }]
 license = "MIT"
 requires-python = ">=3.13"
-keywords = ["github-actions", "ci", "cd", "pipelines", "notifications", "monitoring"]
+keywords = ["github-actions", "gitlab-ci", "ci", "cd", "pipelines", "notifications", "monitoring"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -42,6 +42,7 @@ pipe-ping = "pipe_ping.client:app"
 
 [project.entry-points."pipe-ping.providers"]
 GitHubProvider = "pipe_ping.plugin._impl.github:GitHubProvider"
+GitLabProvider = "pipe_ping.plugin._impl.gitlab:GitLabProvider"
 
 [project.entry-points."pipe-ping.repository"]
 SqliteRepository = "pipe_ping.plugin._impl.sqlite:SqliteRepository"

@@ -5,6 +5,8 @@
 - Python 3.13 or later.
 - A GitHub token that can read Actions on the repositories you want to monitor.
   For a fine-grained personal access token, grant **Actions: Read-only**.
+  To monitor GitLab instead, use a GitLab token with the `read_api` scope and
+  the settings in [Configuration](configuration.md#gitlab).
 
 ## Install
 

@@ -16,7 +16,7 @@ $settings = New-ScheduledTaskSettingsSet `
 
 Register-ScheduledTask `
     -TaskName "Pipe-Ping" `
-    -Description "Pipe-Ping GitHub Actions monitor" `
+    -Description "Pipe-Ping CI/CD pipeline monitor" `
     -Action $action `
     -Trigger $trigger `
     -Settings $settings `

@@ -21,6 +21,13 @@ class GitHubSettings(BaseModel):
     runs_per_repo: int = 20
 
 
+class GitLabSettings(BaseModel):
+    token: SecretStr | None = None
+    projects: list[str] = []
+    api_url: str = "https://gitlab.com/api/v4"
+    pipelines_per_project: int = 20
+
+
 class SqliteSettings(BaseModel):
     path: str = str(Path(user_data_dir("pipe-ping", appauthor=False)) / "pipe_ping.db")
 
@@ -36,6 +43,7 @@ class PipePingSettings(BaseSettings):
 
     structured_logging: StructuredLoggingSettings = StructuredLoggingSettings()
     github: GitHubSettings = GitHubSettings()
+    gitlab: GitLabSettings = GitLabSettings()
     sqlite: SqliteSettings = SqliteSettings()
 
 

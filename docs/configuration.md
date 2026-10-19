@@ -48,6 +48,26 @@ PIPE_PING_GITHUB__API_URL=https://github.example.com/api/v3
 If the token or repositories are not set, Pipe-Ping skips the GitHub provider
 and logs a warning. If no other provider is installed, Pipe-Ping exits.
 
+## GitLab
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `PIPE_PING_GITLAB__TOKEN` | Required | A GitLab token with the `read_api` scope on the monitored projects |
+| `PIPE_PING_GITLAB__PROJECTS` | Required | The projects to monitor, by full path, as a JSON list |
+| `PIPE_PING_GITLAB__API_URL` | `https://gitlab.com/api/v4` | The GitLab API URL. Change this to use a self-managed instance |
+| `PIPE_PING_GITLAB__PIPELINES_PER_PROJECT` | `20` | The number of recent pipelines to check in each project |
+
+For example, to monitor two projects on a self-managed GitLab instance:
+
+```env
+PIPE_PING_GITLAB__TOKEN=glpat-...
+PIPE_PING_GITLAB__PROJECTS='["group/project", "group/subgroup/project"]'
+PIPE_PING_GITLAB__API_URL=https://gitlab.example.com/api/v4
+```
+
+If the token or projects are not set, Pipe-Ping skips the GitLab provider and
+logs a warning. You can configure GitHub, GitLab or both.
+
 ## Database
 
 | Setting | Description |

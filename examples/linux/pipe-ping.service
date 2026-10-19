@@ -1,5 +1,5 @@
 [Unit]
-Description=Pipe-Ping GitHub Actions monitor
+Description=Pipe-Ping CI/CD pipeline monitor
 
 [Service]
 ExecStart=%h/.local/bin/pipe-ping daemon
